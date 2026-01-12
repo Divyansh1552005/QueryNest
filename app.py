@@ -2,6 +2,12 @@
 QueryNest – Terminal-based RAG application
 End-to-end wiring:
 Source → Loader → Splitter → FAISS → RAG → Chat Memory
+
+ARCHITECTURE:
+1. Collect source metadata (NO FETCHING)
+2. Check if session exists (FAISS index check)
+3. IF session exists → resume (NO LOADERS)
+4. IF new session → fetch, split, embed, save
 """
 
 import sys
@@ -29,39 +35,42 @@ from src.utils.paths import ensure_base_dirs, get_session_dir
 from src.vector_store.faiss_store import FaissStore
 
 
-def select_source():
+def collect_source_metadata():
     """
-    User se source type aur input leta hai
-    Returns: (documents, session_key, source_type)
+    ONLY collects source information - DOES NOT FETCH ANYTHING
+
+    Returns: (source_type, source_key, session_name)
+
+    CRITICAL: No loaders are called here!
     """
     source_type = input("Choose source (yt / pdf / web): ").strip().lower()
 
     if source_type == "yt":
         url = input("Enter YouTube URL: ").strip()
-        docs = load_youtube_documents(url)
         session_key = url
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
             or url[:50]
         )
+        return source_type, session_key, name
 
     elif source_type == "pdf":
         path = input("Enter PDF file or directory path: ").strip()
-        docs = load_pdfs_lazy(path)
         session_key = path
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
             or path.split("/")[-1]
         )
+        return source_type, session_key, name
 
     elif source_type == "web":
         url = input("Enter Website URL: ").strip()
-        docs = load_web_pages(url)
         session_key = url
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
             or url[:50]
         )
+        return source_type, session_key, name
 
     else:
         print(f"\n❌ Error: '{source_type}' is not supported.")
@@ -69,7 +78,26 @@ def select_source():
         print("Exiting...\n")
         sys.exit(1)
 
-    return docs, session_key, source_type, name
+
+def fetch_source_documents(source_type: str, source_key: str):
+    """
+    Fetches documents based on source type
+
+    CRITICAL: This function is ONLY called in the NEW SESSION branch
+    """
+    print(f"📥 Fetching {source_type} content from: {source_key[:60]}...")
+
+    if source_type == "yt":
+        return load_youtube_documents(source_key)
+
+    elif source_type == "pdf":
+        return load_pdfs_lazy(source_key)
+
+    elif source_type == "web":
+        return load_web_pages(source_key)
+
+    else:
+        raise ValueError(f"Unknown source type: {source_type}")
 
 
 def check_for_config_commands():
@@ -98,32 +126,65 @@ def main():
     check_for_config_commands()
 
     # -----------------------------
-    # Source selection
+    # STEP 1: Collect source metadata (NO FETCHING!)
     # -----------------------------
-    documents, session_key, source_type, session_name = select_source()
+    source_type, session_key, session_name = collect_source_metadata()
+
+    # -----------------------------
+    # STEP 2: Compute session ID and check existence IMMEDIATELY
+    # -----------------------------
     session_id = generate_session_id(session_key)
     session_dir = get_session_dir(session_id)
 
-    print(f"Session ID: {session_id[:8]}...")
+    print(f"\n🔑 Session ID: {session_id[:8]}...")
 
     # -----------------------------
-    # FAISS Store
+    # STEP 3: Check if FAISS index exists
     # -----------------------------
     store = FaissStore()
-    resumed = store.load(session_id)
+    session_exists = store.load(session_id)
 
     # -----------------------------
-    # Session Metadata
+    # BRANCHING: Resume vs New Session
     # -----------------------------
-    existing_meta = load_session_meta(session_dir)
+    if session_exists:
+        # ========================================
+        # SESSION RESUME PATH (NO FETCHING!)
+        # ========================================
+        print("✅ Session resumed from disk")
 
-    if not resumed:
-        print("🆕 New session – building vector store...")
+        # Load existing metadata
+        existing_meta = load_session_meta(session_dir)
 
+        if existing_meta:
+            # Update last_used_at timestamp
+            existing_meta.last_used_at = SessionMeta.now()
+            save_session_meta(session_dir, existing_meta)
+            print(f"📝 Session: {existing_meta.name}")
+            print(f"📂 Source: {existing_meta.source_type.upper()}")
+        else:
+            print("⚠️  Session metadata not found (corrupted session?)")
+
+    else:
+        # ========================================
+        # NEW SESSION PATH (FETCH + BUILD)
+        # ========================================
+        print("🆕 New session – fetching and building vector store...")
+
+        # STEP 4: Fetch documents (ONLY for new sessions!)
+        documents = fetch_source_documents(source_type, session_key)
+
+        # STEP 5: Split documents into chunks
+        print("✂️  Splitting documents into chunks...")
         chunks = split_documents(documents)
-        store.build(chunks, session_id)
+        print(f"📊 Created {len(chunks)} chunks")
 
-        # Create new session metadata
+        # STEP 6: Build FAISS index with embeddings
+        print("🔮 Building FAISS vector store (this may take a moment)...")
+        store.build(chunks, session_id)
+        print("✅ Vector store built successfully")
+
+        # STEP 7: Create and save session metadata
         meta = SessionMeta(
             id=session_id,
             name=session_name,
@@ -135,28 +196,19 @@ def main():
         save_session_meta(session_dir, meta)
         print(f"📝 Session saved: {session_name}")
 
-    else:
-        print("✅ Session resumed")
-
-        # Update last_used_at for existing session
-        if existing_meta:
-            existing_meta.last_used_at = SessionMeta.now()
-            save_session_meta(session_dir, existing_meta)
-            print(f"📝 Session: {existing_meta.name}")
-
     # -----------------------------
-    # Chat memory
+    # Chat memory (both paths)
     # -----------------------------
     memory = ChatMemory(session_id)
 
     # -----------------------------
-    # LLM + RAG chain
+    # LLM + RAG chain (both paths)
     # -----------------------------
     llm = get_llm()
     retriever = store.get_retriever(k=6)
     rag_chain = build_rag_chain(llm, retriever)
 
-    print("\nAsk questions (type 'exit' to quit)\n")
+    print("\n💬 Chat started! Ask questions (type 'exit' to quit)\n")
 
     # -----------------------------
     # Chat loop
@@ -167,6 +219,9 @@ def main():
         if query.lower() in {"exit", "quit"}:
             print("👋 Bye")
             break
+
+        if not query:
+            continue
 
         memory.add_user_message(query)
 
