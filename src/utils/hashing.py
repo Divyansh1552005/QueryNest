@@ -19,3 +19,4 @@ def generate_session_id(source: str) -> str:
 
     normalized = source.strip().lower()
     return hashlib.sha256(normalized.encode()).hexdigest()
+

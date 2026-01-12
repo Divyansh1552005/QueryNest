@@ -11,13 +11,13 @@ IMPORTANT:
 
 from typing import Iterable, List
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def get_text_splitter(
-    chunk_size: int = 1000,
-    chunk_overlap: int = 200,
+    chunk_size: int = 1500,
+    chunk_overlap: int = 300,
 ) -> RecursiveCharacterTextSplitter:
     """
     Ye function ek configured text splitter return karta hai
@@ -33,20 +33,14 @@ def get_text_splitter(
     return RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        separators=[
-            "\n\n",
-            "\n",
-            ". ",
-            " ",
-            ""
-        ],
+        separators=["\n\n", "\n", ". ", " ", ""],
     )
 
 
 def split_documents(
     documents: Iterable[Document],
-    chunk_size: int = 1000,
-    chunk_overlap: int = 200,
+    chunk_size: int = 1500,
+    chunk_overlap: int = 300,
 ) -> List[Document]:
     """
     documents:

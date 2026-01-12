@@ -9,8 +9,8 @@ IMPORTANT:
 - No splitting, no embeddings, no FAISS here
 """
 
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 from langchain_core.documents import Document
+from youtube_transcript_api import TranscriptsDisabled, YouTubeTranscriptApi
 
 
 def extract_video_id(url: str) -> str:
@@ -48,21 +48,40 @@ def load_youtube_documents(url: str) -> list[Document]:
     video_id = extract_video_id(url)
 
     try:
-        api = YouTubeTranscriptApi()
-
         # -------------------------------
         # Language fallback strategy
         # -------------------------------
+        transcript = None
         try:
-            transcript = api.fetch(video_id, ["en"])
+            # Try English first
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=["en"])
         except Exception:
             try:
-                transcript = api.fetch(video_id, ["hi"])
+                # Try Hindi
+                transcript = YouTubeTranscriptApi.get_transcript(
+                    video_id, languages=["hi"]
+                )
             except Exception:
-                transcript = api.fetch(video_id)
+                # Get any available transcript
+                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                # Try to get first available transcript (manually created or generated)
+                try:
+                    transcript = transcript_list.find_transcript(
+                        transcript_list._manually_created_transcripts.keys()
+                        if transcript_list._manually_created_transcripts
+                        else transcript_list._generated_transcripts.keys()
+                    ).fetch()
+                except Exception:
+                    # If all else fails, get the first available one
+                    for t in transcript_list:
+                        transcript = t.fetch()
+                        break
+
+        if not transcript:
+            raise RuntimeError("No transcript available for this video")
 
         # Transcript segments → plain text
-        full_text = " ".join(segment.text for segment in transcript)
+        full_text = " ".join(segment["text"] for segment in transcript)
 
         if not full_text.strip():
             raise RuntimeError("Empty transcript fetched")

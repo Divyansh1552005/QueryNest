@@ -1,6 +1,8 @@
 import os
-from src.config.setup import setup_if_needed
+
 from langchain_google_genai import ChatGoogleGenerativeAI
+
+from src.config.setup import setup_if_needed
 
 
 def get_llm():
@@ -14,7 +16,7 @@ def get_llm():
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0,
-        max_tokens=1024,
+        max_tokens=4096,
     )
 
     return llm

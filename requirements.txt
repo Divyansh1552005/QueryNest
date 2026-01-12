@@ -1,4 +1,4 @@
-# QueryNest – FAISS-first RAG CLI (Python >= 3.10,<3.13)
+# QueryNest – FAISS-first RAG CLI (Python >= 3.10,<3.13) , it uses 3.12 for development (so reccomended is 3.12)
 
 # LangChain core
 langchain==0.3.27
@@ -31,6 +31,7 @@ requests==2.32.5
 beautifulsoup4==4.12.3
 readability-lxml==0.8.1
 lxml==5.2.2
+lxml_html_clean==0.1.1
 
 # for progress bars
 tqdm

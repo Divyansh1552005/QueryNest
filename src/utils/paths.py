@@ -48,3 +48,5 @@ def get_chat_path(session_id: str) -> Path:
     Chat history ka path (v1.5+)
     """
     return get_session_dir(session_id) / "chat.json"
+
+
