@@ -1,5 +1,6 @@
-from src.config.config_loader import load_config, save_config, update_api_key
-from src.config.config_model import AppConfig
+from querynest.config.config_loader import load_config, save_config, update_api_key
+from querynest.config.config_model import AppConfig
+
 
 def setup_if_needed() -> AppConfig:
     config = load_config()
@@ -15,6 +16,7 @@ def setup_if_needed() -> AppConfig:
     print("API key saved at ~/.querynest/config.json")
     return config
 
+
 def reset_api_key():
     """
     Prompts user to update Gemini API key
@@ -25,4 +27,3 @@ def reset_api_key():
     update_api_key(new_key)
 
     print("API key updated successfully")
-    

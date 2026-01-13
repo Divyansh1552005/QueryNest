@@ -15,8 +15,8 @@ from typing import List
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 
-from src.embeddings.embedder import get_embeddings
-from src.utils.paths import get_session_dir
+from querynest.embeddings.embedder import get_embeddings
+from querynest.utils.paths import get_session_dir
 
 
 class FaissStore:

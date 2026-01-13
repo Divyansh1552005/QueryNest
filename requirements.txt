@@ -1,3 +1,5 @@
+# not used now (just kept for legacy purposes)
+
 # QueryNest – FAISS-first RAG CLI (Python >= 3.10,<3.13) , it uses 3.12 for development (so reccomended is 3.12)
 
 # LangChain core

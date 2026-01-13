@@ -8,7 +8,7 @@ Ye file sirf ek baar call hoti hai (app startup pe)
 """
 
 import os
-from src.config.setup import setup_if_needed
+from querynest.config.setup import setup_if_needed
 
 
 def bootstrap():

@@ -8,9 +8,9 @@ Ye memory RAG ke context ke liye use hogi
 """
 
 import json
-from typing import List, Dict
+from typing import Dict, List
 
-from src.utils.paths import get_chat_path
+from querynest.utils.paths import get_chat_path
 
 
 class ChatMemory:
@@ -37,17 +37,21 @@ class ChatMemory:
             return json.load(f)
 
     def add_user_message(self, message: str):
-        self.history.append({
-            "role": "user",
-            "content": message,
-        })
+        self.history.append(
+            {
+                "role": "user",
+                "content": message,
+            }
+        )
         self._save()
 
     def add_assistant_message(self, message: str):
-        self.history.append({
-            "role": "assistant",
-            "content": message,
-        })
+        self.history.append(
+            {
+                "role": "assistant",
+                "content": message,
+            }
+        )
         self._save()
 
     def _save(self):

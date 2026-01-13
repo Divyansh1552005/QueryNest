@@ -1,6 +1,8 @@
 import json
-from src.config.config_model import AppConfig
-from src.utils.paths import CONFIG_PATH, ensure_base_dirs
+
+from querynest.config.config_model import AppConfig
+from querynest.utils.paths import CONFIG_PATH, ensure_base_dirs
+
 
 def load_config() -> AppConfig | None:
     if not CONFIG_PATH.exists():
@@ -17,11 +19,11 @@ def save_config(config: AppConfig):
 
     with open(CONFIG_PATH, "w") as f:
         json.dump(config.model_dump(), f, indent=2)
-        
+
+
 def update_api_key(new_key: str):
     """
     Overwrites existing Gemini API key
     """
     config = AppConfig(gemini_api_key=new_key)
     save_config(config)
-    

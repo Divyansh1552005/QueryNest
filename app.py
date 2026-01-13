@@ -15,29 +15,29 @@ import sys
 # -----------------------------
 # 1. Bootstrap (API key setup)
 # -----------------------------
-from src.config.bootstrap import bootstrap
+from querynest.config.bootstrap import bootstrap
 
 bootstrap()
 
 # -----------------------------
 # 2. Imports (safe after bootstrap)
 # -----------------------------
-from src.config.gemini import get_llm
-from src.loaders.pdf_loader import load_pdfs_lazy
-from src.loaders.web_loader import load_web_pages
-from src.loaders.youtube_loader import load_youtube_documents
-from src.memory.chat_memory import ChatMemory
-from src.processor.text_splitter import split_documents
-from src.rag.rag_chain import build_rag_chain
-from src.sessions.session_meta import SessionMeta, load_session_meta, save_session_meta
-from src.utils.hashing import generate_session_id
-from src.utils.paths import ensure_base_dirs, get_session_dir
-from src.vector_store.faiss_store import FaissStore
+from querynest.config.gemini import get_llm
+from querynest.loaders.pdf_loader import load_pdfs_lazy
+from querynest.loaders.web_loader import load_web_pages
+from querynest.loaders.youtube_loader import load_youtube_documents
+from querynest.memory.chat_memory import ChatMemory
+from querynest.processor.text_splitter import split_documents
+from querynest.rag.rag_chain import build_rag_chain
+from querynest.sessions.session_meta import SessionMeta, load_session_meta, save_session_meta
+from querynest.utils.hashing import generate_session_id
+from querynest.utils.paths import ensure_base_dirs, get_session_dir
+from querynest.vector_store.faiss_store import FaissStore
 
 
 def collect_source_metadata():
     """
-    ONLY collects source information - DOES NOT FETCH ANYTHING
+    ONLY collects source information - DOES NOT FETCH ANYTHING`
 
     Returns: (source_type, source_key, session_name)
 
@@ -55,7 +55,9 @@ def collect_source_metadata():
         return source_type, session_key, name
 
     elif source_type == "pdf":
-        path = input("Enter PDF file or directory path: ").strip()
+        path = input(
+            "Enter PDF file path or directory path (for multiple PDFs): "
+        ).strip()
         session_key = path
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
@@ -64,11 +66,13 @@ def collect_source_metadata():
         return source_type, session_key, name
 
     elif source_type == "web":
-        url = input("Enter Website URL: ").strip()
-        session_key = url
+        url_input = input(
+            "Enter Website URL(s) (comma-separated for multiple): "
+        ).strip()
+        session_key = url_input
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
-            or url[:50]
+            or url_input[:50]
         )
         return source_type, session_key, name
 
@@ -85,7 +89,7 @@ def fetch_source_documents(source_type: str, source_key: str):
 
     CRITICAL: This function is ONLY called in the NEW SESSION branch
     """
-    print(f"📥 Fetching {source_type} content from: {source_key[:60]}...")
+    print(f"Fetching {source_type} content from: {source_key[:60]}...")
 
     if source_type == "yt":
         return load_youtube_documents(source_key)
@@ -94,7 +98,9 @@ def fetch_source_documents(source_type: str, source_key: str):
         return load_pdfs_lazy(source_key)
 
     elif source_type == "web":
-        return load_web_pages(source_key)
+        # Split by comma if multiple URLs provided
+        urls = [url.strip() for url in source_key.split(",") if url.strip()]
+        return load_web_pages(urls)
 
     else:
         raise ValueError(f"Unknown source type: {source_type}")
@@ -151,7 +157,7 @@ def main():
         # ========================================
         # SESSION RESUME PATH (NO FETCHING!)
         # ========================================
-        print("✅ Session resumed from disk")
+        print("Session resumed from disk")
 
         # Load existing metadata
         existing_meta = load_session_meta(session_dir)
@@ -160,29 +166,29 @@ def main():
             # Update last_used_at timestamp
             existing_meta.last_used_at = SessionMeta.now()
             save_session_meta(session_dir, existing_meta)
-            print(f"📝 Session: {existing_meta.name}")
-            print(f"📂 Source: {existing_meta.source_type.upper()}")
+            print(f"Session: {existing_meta.name}")
+            print(f"Source: {existing_meta.source_type.upper()}")
         else:
-            print("⚠️  Session metadata not found (corrupted session?)")
+            print("Session metadata not found (corrupted session?)")
 
     else:
         # ========================================
         # NEW SESSION PATH (FETCH + BUILD)
         # ========================================
-        print("🆕 New session – fetching and building vector store...")
+        print("New session – fetching and building vector store...")
 
         # STEP 4: Fetch documents (ONLY for new sessions!)
         documents = fetch_source_documents(source_type, session_key)
 
         # STEP 5: Split documents into chunks
-        print("✂️  Splitting documents into chunks...")
+        print("Splitting documents into chunks...")
         chunks = split_documents(documents)
-        print(f"📊 Created {len(chunks)} chunks")
+        print(f"Created {len(chunks)} chunks")
 
         # STEP 6: Build FAISS index with embeddings
-        print("🔮 Building FAISS vector store (this may take a moment)...")
+        print("Building FAISS vector store (this may take a moment)...")
         store.build(chunks, session_id)
-        print("✅ Vector store built successfully")
+        print("Vector store built successfully")
 
         # STEP 7: Create and save session metadata
         meta = SessionMeta(
@@ -194,7 +200,7 @@ def main():
             last_used_at=SessionMeta.now(),
         )
         save_session_meta(session_dir, meta)
-        print(f"📝 Session saved: {session_name}")
+        print(f"Session saved: {session_name}")
 
     # -----------------------------
     # Chat memory (both paths)
@@ -208,7 +214,7 @@ def main():
     retriever = store.get_retriever(k=6)
     rag_chain = build_rag_chain(llm, retriever)
 
-    print("\n💬 Chat started! Ask questions (type 'exit' to quit)\n")
+    print("\n Chat started! Ask questions (type 'exit' to quit)\n")
 
     # -----------------------------
     # Chat loop
