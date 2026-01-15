@@ -2,10 +2,10 @@
 Is file ka kaam:
 - PDF files ko LangChain ke through load karna
 - Lazy loading use karna taaki RAM par kam load pade
-- Single PDF ya poore directory dono support karna
+- Single PDF ya poore directory dono support karta hai ye
 
-Ye loader sirf DOCUMENTS deta hai,
-text splitting baad me hoga.
+Ye loader sirf DOCUMENTS ie document objects deta hai,
+text splitting baad mein karange.
 """
 
 from pathlib import Path
@@ -29,7 +29,7 @@ def load_pdfs_lazy(path: str) -> Iterable[Document]:
 
     NOTE:
     - Is function me koi heavy RAM load nahi hota
-    - Documents ek-ek karke milte hain
+    - Documents ek-ek karke milte hain coz user can give big files too
     """
 
     input_path = Path(path)
@@ -37,9 +37,7 @@ def load_pdfs_lazy(path: str) -> Iterable[Document]:
     if not input_path.exists():
         raise FileNotFoundError(f"Path not found: {path}")
 
-    # -------------------------------
     # Case 1: Single PDF file
-    # -------------------------------
     if input_path.is_file():
         if input_path.suffix.lower() != ".pdf":
             raise ValueError("Provided file is not a PDF")
@@ -47,15 +45,13 @@ def load_pdfs_lazy(path: str) -> Iterable[Document]:
         loader = PyPDFLoader(str(input_path))
         return loader.lazy_load()
 
-    # -------------------------------
     # Case 2: Directory of PDFs
-    # -------------------------------
     if input_path.is_dir():
         loader = DirectoryLoader(
             path=str(input_path),
             glob="**/*.pdf",
             loader_cls=PyPDFLoader,
-            show_progress=True,  # terminal UX better
+            show_progress=True,  # terminal UX better krne khatar
         )
 
         return loader.lazy_load()

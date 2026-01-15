@@ -1,7 +1,7 @@
 """
 Is file ka kaam:
 - LangChain Documents ko chunks me todna
-- Sabhi loaders (PDF / Web / YouTube) ke liye common logic dena
+- sbhi loaders k liye same way mein split karange
 - Chunking token-aware + overlap ke saath karna
 
 IMPORTANT:
@@ -48,9 +48,6 @@ def split_documents(
 
     Returns:
     - List[Document] (small chunks)
-
-    NOTE:
-    - Metadata automatically preserve hota hai
     """
 
     splitter = get_text_splitter(

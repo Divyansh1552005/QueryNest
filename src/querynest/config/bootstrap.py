@@ -1,9 +1,8 @@
 """
-Is file ka kaam:
+Why this file : 
 - App start hote hi ensure karna ki Gemini API key available ho
 - First run pe user se API key lena
 - GOOGLE_API_KEY environment variable set karna
-
 Ye file sirf ek baar call hoti hai (app startup pe)
 """
 
@@ -17,10 +16,7 @@ def bootstrap():
     2. Agar nahi karta → user se API key input leta hai
     3. API key ko environment variable me set karta hai
 
-    Iske baad:
-    - LangChain LLM
-    - LangChain embeddings
-    sab env se key utha sakte hain
+    Iske baad - chatmodel, embedding model sb api key use kr skte hai environment se
     """
 
     config = setup_if_needed()

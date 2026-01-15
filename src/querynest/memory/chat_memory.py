@@ -2,7 +2,7 @@
 Is file ka kaam:
 - Session-based chat history store karna
 - JSON file me persist karna
-- Sliding window maintain karna
+- Sliding window maintain karna for context awareness
 
 Ye memory RAG ke context ke liye use hogi
 """

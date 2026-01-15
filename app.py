@@ -12,16 +12,13 @@ ARCHITECTURE:
 
 import sys
 
-# -----------------------------
+
 # 1. Bootstrap (API key setup)
-# -----------------------------
 from querynest.config.bootstrap import bootstrap
 
 bootstrap()
 
-# -----------------------------
 # 2. Imports (safe after bootstrap)
-# -----------------------------
 from querynest.config.gemini import get_llm
 from querynest.loaders.pdf_loader import load_pdfs_lazy
 from querynest.loaders.web_loader import load_web_pages
@@ -38,10 +35,8 @@ from querynest.vector_store.faiss_store import FaissStore
 def collect_source_metadata():
     """
     ONLY collects source information - DOES NOT FETCH ANYTHING`
-
     Returns: (source_type, source_key, session_name)
-
-    CRITICAL: No loaders are called here!
+    We are doing this so that agr session ho already toh vahi load ho jaaye
     """
     source_type = input("Choose source (yt / pdf / web): ").strip().lower()
 
@@ -86,8 +81,6 @@ def collect_source_metadata():
 def fetch_source_documents(source_type: str, source_key: str):
     """
     Fetches documents based on source type
-
-    CRITICAL: This function is ONLY called in the NEW SESSION branch
     """
     print(f"Fetching {source_type} content from: {source_key[:60]}...")
 
@@ -117,7 +110,7 @@ def check_for_config_commands():
     )
 
     if cmd == "reset-key":
-        from src.config.setup import reset_api_key
+        from querynest.config.setup import reset_api_key
 
         reset_api_key()
         print("\n✅ API key updated. Continuing...\n")
@@ -126,37 +119,28 @@ def check_for_config_commands():
 def main():
     ensure_base_dirs()
 
-    # -----------------------------
     # Config commands check
-    # -----------------------------
     check_for_config_commands()
 
-    # -----------------------------
-    # STEP 1: Collect source metadata (NO FETCHING!)
-    # -----------------------------
+    # STEP 1: Collect source metadata
     source_type, session_key, session_name = collect_source_metadata()
 
-    # -----------------------------
-    # STEP 2: Compute session ID and check existence IMMEDIATELY
-    # -----------------------------
+
+    # STEP 2: Compute session ID and check existence of session
     session_id = generate_session_id(session_key)
     session_dir = get_session_dir(session_id)
 
-    print(f"\n🔑 Session ID: {session_id[:8]}...")
+    print(f"\nSession ID: {session_id[:8]}...")
 
-    # -----------------------------
+
     # STEP 3: Check if FAISS index exists
-    # -----------------------------
     store = FaissStore()
     session_exists = store.load(session_id)
 
-    # -----------------------------
+
     # BRANCHING: Resume vs New Session
-    # -----------------------------
     if session_exists:
-        # ========================================
-        # SESSION RESUME PATH (NO FETCHING!)
-        # ========================================
+        # SESSION RESUME PATH
         print("Session resumed from disk")
 
         # Load existing metadata
@@ -172,12 +156,10 @@ def main():
             print("Session metadata not found (corrupted session?)")
 
     else:
-        # ========================================
-        # NEW SESSION PATH (FETCH + BUILD)
-        # ========================================
+        # new session is made
         print("New session – fetching and building vector store...")
 
-        # STEP 4: Fetch documents (ONLY for new sessions!)
+        # STEP 4: Fetch documents
         documents = fetch_source_documents(source_type, session_key)
 
         # STEP 5: Split documents into chunks
@@ -202,28 +184,24 @@ def main():
         save_session_meta(session_dir, meta)
         print(f"Session saved: {session_name}")
 
-    # -----------------------------
+
     # Chat memory (both paths)
-    # -----------------------------
     memory = ChatMemory(session_id)
 
-    # -----------------------------
     # LLM + RAG chain (both paths)
-    # -----------------------------
     llm = get_llm()
     retriever = store.get_retriever(k=6)
     rag_chain = build_rag_chain(llm, retriever)
 
     print("\n Chat started! Ask questions (type 'exit' to quit)\n")
 
-    # -----------------------------
-    # Chat loop
-    # -----------------------------
+
+    # Chatting loop
     while True:
         query = input("You: ").strip()
 
         if query.lower() in {"exit", "quit"}:
-            print("👋 Bye")
+            print("Bye!!!")
             break
 
         if not query:

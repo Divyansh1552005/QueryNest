@@ -1,13 +1,8 @@
 """
-Is file ka kaam:
+This file: 
 - YouTube URL se video ID nikalna
 - Transcript API se transcript fetch karna
-- LangChain Document object return karna (splitter + FAISS ready)
-
-IMPORTANT:
-- Loader ka kaam sirf data lana hai
-- No splitting, no embeddings, no FAISS here
-- Retry logic with exponential backoff for rate limiting
+- LangChain Document object return karna
 """
 
 import time
@@ -20,14 +15,14 @@ from youtube_transcript_api import (
 )
 
 
-def extract_video_id(url: str) -> str:
-    """
-    YouTube ke different URL formats handle karta hai
+"""
+This func handles different formats of yt links
+Supported:
+- https://youtu.be/VIDEO_ID
+- https://www.youtube.com/watch?v=VIDEO_ID
+"""
 
-    Supported:
-    - https://youtu.be/VIDEO_ID
-    - https://www.youtube.com/watch?v=VIDEO_ID
-    """
+def extract_video_id(url: str) -> str:
 
     if "youtu.be/" in url:
         return url.split("youtu.be/")[1].split("?")[0]
@@ -37,18 +32,18 @@ def extract_video_id(url: str) -> str:
 
     raise ValueError("Invalid YouTube URL format")
 
+"""
+Transcript fetch karta hai with retry logic and exponential backoff
 
+Args:
+    video_id: YouTube video ID
+    max_retries: Maximum number of retry attempts
+
+Returns:
+    Transcript as list of segments
+"""
 def fetch_transcript_with_retry(video_id: str, max_retries: int = 3) -> list:
-    """
-    Transcript fetch karta hai with retry logic and exponential backoff
-
-    Args:
-        video_id: YouTube video ID
-        max_retries: Maximum number of retry attempts
-
-    Returns:
-        Transcript as list of segments
-    """
+    
 
     for attempt in range(max_retries):
         try:
@@ -79,7 +74,7 @@ def fetch_transcript_with_retry(video_id: str, max_retries: int = 3) -> list:
                 # Check if it's a rate limit or empty response
                 if "no element found" in error_msg or "ParseError" in error_msg:
                     if attempt < max_retries - 1:
-                        print(f"⚠️  Empty response (possible rate limit). Retrying...")
+                        print(f"Empty response (possible rate limit). Retrying...")
                         continue
                     else:
                         raise RuntimeError(
@@ -92,18 +87,18 @@ def fetch_transcript_with_retry(video_id: str, max_retries: int = 3) -> list:
 
             # Method 2: Try Hindi
             try:
-                print(f"🔍 Trying Hindi transcript...")
+                print(f"Trying Hindi transcript...")
                 transcript = YouTubeTranscriptApi.get_transcript(
                     video_id, languages=["hi"]
                 )
-                print("✅ Hindi transcript fetched successfully")
+                print("Hindi transcript fetched successfully")
                 return transcript
             except Exception as e:
                 error_msg = str(e)
 
                 if "no element found" in error_msg or "ParseError" in error_msg:
                     if attempt < max_retries - 1:
-                        print(f"⚠️  Empty response (possible rate limit). Retrying...")
+                        print(f"Empty response (possible rate limit). Retrying...")
                         continue
                     else:
                         raise RuntimeError(
@@ -116,7 +111,7 @@ def fetch_transcript_with_retry(video_id: str, max_retries: int = 3) -> list:
 
             # Method 3: Get any available transcript
             try:
-                print(f"🔍 Fetching any available transcript...")
+                print(f"Fetching any available transcript...")
 
                 # First, list available transcripts
                 transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
@@ -138,7 +133,7 @@ def fetch_transcript_with_retry(video_id: str, max_retries: int = 3) -> list:
 
                 if "no element found" in error_msg or "ParseError" in error_msg:
                     if attempt < max_retries - 1:
-                        print(f"⚠️  Empty response (possible rate limit). Retrying...")
+                        print(f"Empty response (possible rate limit). Retrying...")
                         continue
                     else:
                         raise RuntimeError(
@@ -206,7 +201,7 @@ def load_youtube_documents(url: str) -> list[Document]:
     print(f"📺 Video ID: {video_id}")
 
     # Add small initial delay to avoid immediate rate limiting
-    print("⏳ Adding 2 second delay to avoid rate limiting...")
+    print("Adding 2 second delay to avoid rate limiting...")
     time.sleep(2)
 
     try:
@@ -222,11 +217,9 @@ def load_youtube_documents(url: str) -> list[Document]:
         if not full_text.strip():
             raise RuntimeError("Empty transcript fetched")
 
-        print(f"📄 Transcript length: {len(full_text)} characters")
+        print(f"Transcript length: {len(full_text)} characters")
 
-        # -------------------------------
         # Convert to LangChain Document
-        # -------------------------------
         doc = Document(
             page_content=full_text,
             metadata={

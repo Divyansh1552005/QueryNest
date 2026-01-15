@@ -1,10 +1,10 @@
 """
-Is file ka kaam:
+This file : 
 - Website URL se main readable content nikalna
 - Boilerplate (nav, ads, footer) remove karna
 - LangChain Document object return karna
 
-Ye loader:
+THis loader:
 - Single URL
 - Ya multiple URLs (list) handle kar sakta hai
 """
@@ -30,13 +30,13 @@ def _extract_clean_text(html: str) -> str:
     # BeautifulSoup se text clean
     soup = BeautifulSoup(article_html, "lxml")
 
-    # Unwanted tags hatao
+    # Unwanted tags hata do
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
 
     text = soup.get_text(separator="\n")
 
-    # Extra empty lines clean
+    # Extra empty lines clean krdo
     cleaned_text = "\n".join(
         line.strip()
         for line in text.splitlines()
@@ -46,13 +46,8 @@ def _extract_clean_text(html: str) -> str:
     return cleaned_text
 
 
+# loading a single web page
 def load_web_page(url: str) -> Document:
-    """
-    Single web page load karta hai
-
-    Returns:
-    - LangChain Document
-    """
 
     response = requests.get(
         url,
@@ -79,17 +74,8 @@ def load_web_page(url: str) -> Document:
     )
 
 
+# if user gives multiple web pages (generator style using yield func) returns iterable of document objects
 def load_web_pages(urls: Union[str, list[str]]) -> Iterable[Document]:
-    """
-    Multiple web pages load karta hai (generator style)
-
-    urls:
-    - ek URL (str)
-    - ya URLs ki list
-
-    Returns:
-    - Iterable[Document]
-    """
 
     if isinstance(urls, str):
         urls = [urls]
