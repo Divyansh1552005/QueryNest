@@ -12,7 +12,6 @@ ARCHITECTURE:
 
 import sys
 
-
 # 1. Bootstrap (API key setup)
 from querynest.config.bootstrap import bootstrap
 
@@ -22,11 +21,17 @@ bootstrap()
 from querynest.config.gemini import get_llm
 from querynest.loaders.pdf_loader import load_pdfs_lazy
 from querynest.loaders.web_loader import load_web_pages
-from querynest.loaders.youtube_loader import load_youtube_documents
+
+# YouTube loader removed - YouTube now blocks transcript requests
+# from querynest.loaders.youtube_loader import load_youtube_documents
 from querynest.memory.chat_memory import ChatMemory
 from querynest.processor.text_splitter import split_documents
 from querynest.rag.rag_chain import build_rag_chain
-from querynest.sessions.session_meta import SessionMeta, load_session_meta, save_session_meta
+from querynest.sessions.session_meta import (
+    SessionMeta,
+    load_session_meta,
+    save_session_meta,
+)
 from querynest.utils.hashing import generate_session_id
 from querynest.utils.paths import ensure_base_dirs, get_session_dir
 from querynest.vector_store.faiss_store import FaissStore
@@ -38,21 +43,28 @@ def collect_source_metadata():
     Returns: (source_type, source_key, session_name)
     We are doing this so that agr session ho already toh vahi load ho jaaye
     """
-    source_type = input("Choose source (yt / pdf / web): ").strip().lower()
+    source_type = input("Choose source (pdf / web): ").strip().lower()
 
+    # YouTube support removed - YouTube blocks transcript requests
     if source_type == "yt":
-        url = input("Enter YouTube URL: ").strip()
-        session_key = url
-        name = (
-            input("Enter session name (optional, press Enter to skip): ").strip()
-            or url[:50]
-        )
-        return source_type, session_key, name
+        print("\n❌ Error: YouTube support has been removed.")
+        print("YouTube now blocks transcript requests, making this feature unreliable.")
+        print("Please use 'pdf' or 'web' instead.")
+        print("Exiting...\n")
+        sys.exit(1)
 
-    elif source_type == "pdf":
+    if source_type == "pdf":
         path = input(
             "Enter PDF file path or directory path (for multiple PDFs): "
         ).strip()
+
+        # Validate that path is not empty
+        if not path:
+            print("\nError: PDF path cannot be empty.")
+            print("Please provide a valid file or directory path.")
+            print("Exiting...\n")
+            sys.exit(1)
+
         session_key = path
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
@@ -64,6 +76,14 @@ def collect_source_metadata():
         url_input = input(
             "Enter Website URL(s) (comma-separated for multiple): "
         ).strip()
+
+        # Validate that URL input is not empty
+        if not url_input:
+            print("\nError: URL cannot be empty.")
+            print("Please provide at least one website URL.")
+            print("Exiting...\n")
+            sys.exit(1)
+
         session_key = url_input
         name = (
             input("Enter session name (optional, press Enter to skip): ").strip()
@@ -73,7 +93,7 @@ def collect_source_metadata():
 
     else:
         print(f"\n❌ Error: '{source_type}' is not supported.")
-        print("We only support: yt (YouTube), pdf (PDF files), web (Websites)")
+        print("We only support: pdf (PDF files), web (Websites)")
         print("Exiting...\n")
         sys.exit(1)
 
@@ -84,10 +104,11 @@ def fetch_source_documents(source_type: str, source_key: str):
     """
     print(f"Fetching {source_type} content from: {source_key[:60]}...")
 
+    # YouTube support removed
     if source_type == "yt":
-        return load_youtube_documents(source_key)
+        raise ValueError("YouTube support has been removed due to transcript blocking")
 
-    elif source_type == "pdf":
+    if source_type == "pdf":
         return load_pdfs_lazy(source_key)
 
     elif source_type == "web":
@@ -125,18 +146,15 @@ def main():
     # STEP 1: Collect source metadata
     source_type, session_key, session_name = collect_source_metadata()
 
-
     # STEP 2: Compute session ID and check existence of session
     session_id = generate_session_id(session_key)
     session_dir = get_session_dir(session_id)
 
     print(f"\nSession ID: {session_id[:8]}...")
 
-
     # STEP 3: Check if FAISS index exists
     store = FaissStore()
     session_exists = store.load(session_id)
-
 
     # BRANCHING: Resume vs New Session
     if session_exists:
@@ -184,7 +202,6 @@ def main():
         save_session_meta(session_dir, meta)
         print(f"Session saved: {session_name}")
 
-
     # Chat memory (both paths)
     memory = ChatMemory(session_id)
 
@@ -194,7 +211,6 @@ def main():
     rag_chain = build_rag_chain(llm, retriever)
 
     print("\n Chat started! Ask questions (type 'exit' to quit)\n")
-
 
     # Chatting loop
     while True:

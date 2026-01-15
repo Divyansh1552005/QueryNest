@@ -1291,7 +1291,7 @@ wheels = [
 ]
 
 [[package]]
-name = "querynest"
+name = "querynest-cli"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -1312,7 +1312,6 @@ dependencies = [
     { name = "requests" },
     { name = "tiktoken" },
     { name = "tqdm" },
-    { name = "youtube-transcript-api" },
 ]
 
 [package.metadata]
@@ -1334,7 +1333,6 @@ requires-dist = [
     { name = "requests", specifier = "==2.32.5" },
     { name = "tiktoken", specifier = "==0.12.0" },
     { name = "tqdm" },
-    { name = "youtube-transcript-api", specifier = "==0.6.2" },
 ]
 
 [[package]]
@@ -1678,18 +1676,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/9a/6ad1a9b37c2f72874f93e691b2e7ecb6137fb2b899983125db4204e47575/yarl-1.22.0-cp312-cp312-win_amd64.whl", hash = "sha256:8884d8b332a5e9b88e23f60bb166890009429391864c685e17bd73a9eda9105c", size = 87213, upload-time = "2025-10-06T14:10:11.369Z" },
     { url = "https://files.pythonhosted.org/packages/44/c5/c21b562d1680a77634d748e30c653c3ca918beb35555cff24986fff54598/yarl-1.22.0-cp312-cp312-win_arm64.whl", hash = "sha256:ea70f61a47f3cc93bdf8b2f368ed359ef02a01ca6393916bc8ff877427181e74", size = 81330, upload-time = "2025-10-06T14:10:13.112Z" },
     { url = "https://files.pythonhosted.org/packages/73/ae/b48f95715333080afb75a4504487cbe142cae1268afc482d06692d605ae6/yarl-1.22.0-py3-none-any.whl", hash = "sha256:1380560bdba02b6b6c90de54133c81c9f2a453dee9912fe58c1dcced1edb7cff", size = 46814, upload-time = "2025-10-06T14:12:53.872Z" },
-]
-
-[[package]]
-name = "youtube-transcript-api"
-version = "0.6.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/e9/82d16b9639bb9fedade810f87ecb18f705591160b5768a79001ac5b99a82/youtube_transcript_api-0.6.2.tar.gz", hash = "sha256:cad223d7620633cec44f657646bffc8bbc5598bd8e70b1ad2fa8277dec305eb7", size = 24565, upload-time = "2023-12-27T13:18:44.084Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/42/5f57d37d56bdb09722f226ed81cc1bec63942da745aa27266b16b0e16a5d/youtube_transcript_api-0.6.2-py3-none-any.whl", hash = "sha256:019dbf265c6a68a0591c513fff25ed5a116ce6525832aefdfb34d4df5567121c", size = 24207, upload-time = "2023-12-27T13:18:41.318Z" },
 ]
 
 [[package]]

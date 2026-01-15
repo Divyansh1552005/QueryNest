@@ -3,15 +3,33 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "querynest"
+name = "querynest-cli"
 version = "0.1.0"
-description = "FAISS-first RAG CLI for documents, web pages, and YouTube"
+description = "FAISS-first RAG CLI for documents and web pages"
 readme = "README.md"
+license = { text = "GPL-3.0-only" }
+
+authors = [
+  { name = "Divyansh Sharma" }
+]
 
 # Python version policy
 # Development: 3.12
 # Supported: >=3.10,<3.13
 requires-python = ">=3.10,<3.13"
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries",
+]
 
 dependencies = [
   # LangChain core
@@ -19,33 +37,45 @@ dependencies = [
   "langchain-core==0.3.80",
   "langchain-community==0.3.31",
   "langchain-text-splitters==0.3.11",
+
   # Google Gemini integration
   "langchain-google-genai==2.0.10",
   "google-generativeai==0.8.5",
+
   # Environment configuration
   "python-dotenv==1.2.1",
+
   # Vector store (FAISS – local)
   "faiss-cpu==1.8.0.post1",
+
   # Tokenization and validation
   "tiktoken==0.12.0",
   "pydantic==2.12.5",
-  # YouTube transcript loader
-  "youtube-transcript-api==0.6.2",
+
   # PDF loader
   "pypdf==6.4.0",
+
   # Web content loading and cleaning
   "requests==2.32.5",
   "beautifulsoup4==4.12.3",
   "readability-lxml==0.8.1",
   "lxml==5.2.2",
   "lxml-html-clean==0.1.1",
+
   # Progress bars
   "tqdm",
+
+  # --- FUTURE / OPTIONAL ---
+  # YouTube transcript loader (disabled due to platform restrictions)
+  # Uncomment if transcript access becomes reliable again
+  # "youtube-transcript-api==0.6.2",
 ]
 
+[project.scripts]
+querynest = "querynest.cli.main:app"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
