@@ -19,7 +19,7 @@ from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 from langchain_core.documents import Document
 
 
-def load_pdfs_lazy(path: str) -> List[Document]:
+def load_pdfs(path: str) -> List[Document]:
     """
     PDF file(s) ko load karke LangChain Documents return karta hai.
 

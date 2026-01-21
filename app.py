@@ -18,8 +18,11 @@ from querynest.config.bootstrap import bootstrap
 bootstrap()
 
 # 2. Imports (safe after bootstrap)
+from rich.console import Console
+from rich.markdown import Markdown
+
 from querynest.config.gemini import get_llm
-from querynest.loaders.pdf_loader import load_pdfs_lazy
+from querynest.loaders.pdf_loader import load_pdfs
 from querynest.loaders.web_loader import load_web_pages
 
 # YouTube loader removed - YouTube now blocks transcript requests
@@ -36,18 +39,21 @@ from querynest.utils.hashing import generate_session_id
 from querynest.utils.paths import ensure_base_dirs, get_session_dir
 from querynest.vector_store.faiss_store import FaissStore
 
+# Initialize Rich console
+console = Console()
+
 
 def collect_source_metadata():
     """
-    ONLY collects source information - DOES NOT FETCH ANYTHING`
-    Returns: (source_type, source_key, session_name)
+    ONLY collects source information - DOES NOT FETCH ANYTHING
+    Returns: (source_type, source_key)
     We are doing this so that agr session ho already toh vahi load ho jaaye
     """
     source_type = input("Choose source (pdf / web): ").strip().lower()
 
     # YouTube support removed - YouTube blocks transcript requests
     if source_type == "yt":
-        print("\n❌ Error: YouTube support has been removed.")
+        print("\nError: YouTube support has been removed.")
         print("YouTube now blocks transcript requests, making this feature unreliable.")
         print("Please use 'pdf' or 'web' instead.")
         print("Exiting...\n")
@@ -65,12 +71,7 @@ def collect_source_metadata():
             print("Exiting...\n")
             sys.exit(1)
 
-        session_key = path
-        name = (
-            input("Enter session name (optional, press Enter to skip): ").strip()
-            or path.split("/")[-1]
-        )
-        return source_type, session_key, name
+        return source_type, path
 
     elif source_type == "web":
         url_input = input(
@@ -84,15 +85,10 @@ def collect_source_metadata():
             print("Exiting...\n")
             sys.exit(1)
 
-        session_key = url_input
-        name = (
-            input("Enter session name (optional, press Enter to skip): ").strip()
-            or url_input[:50]
-        )
-        return source_type, session_key, name
+        return source_type, url_input
 
     else:
-        print(f"\n❌ Error: '{source_type}' is not supported.")
+        print(f"\nError: '{source_type}' is not supported.")
         print("We only support: pdf (PDF files), web (Websites)")
         print("Exiting...\n")
         sys.exit(1)
@@ -109,7 +105,7 @@ def fetch_source_documents(source_type: str, source_key: str):
         raise ValueError("YouTube support has been removed due to transcript blocking")
 
     if source_type == "pdf":
-        return load_pdfs_lazy(source_key)
+        return load_pdfs(source_key)
 
     elif source_type == "web":
         # Split by comma if multiple URLs provided
@@ -134,7 +130,7 @@ def check_for_config_commands():
         from querynest.config.setup import reset_api_key
 
         reset_api_key()
-        print("\n✅ API key updated. Continuing...\n")
+        print("\nAPI key updated. Continuing...\n")
 
 
 def main():
@@ -144,7 +140,7 @@ def main():
     check_for_config_commands()
 
     # STEP 1: Collect source metadata
-    source_type, session_key, session_name = collect_source_metadata()
+    source_type, session_key = collect_source_metadata()
 
     # STEP 2: Compute session ID and check existence of session
     session_id = generate_session_id(session_key)
@@ -168,14 +164,28 @@ def main():
             # Update last_used_at timestamp
             existing_meta.last_used_at = SessionMeta.now()
             save_session_meta(session_dir, existing_meta)
-            print(f"Session: {existing_meta.name}")
-            print(f"Source: {existing_meta.source_type.upper()}")
+            print(f"Session name: {existing_meta.name}")
+            print(f"Source type: {existing_meta.source_type.upper()}")
         else:
             print("Session metadata not found (corrupted session?)")
 
     else:
-        # new session is made
-        print("New session – fetching and building vector store...")
+        # NEW SESSION - Ask for name
+        print("New session – setting up...")
+        session_name = input(
+            "Enter a name for this session (optional, press Enter to use default): "
+        ).strip()
+
+        # Use default name if user didn't provide one
+        if not session_name:
+            if source_type == "pdf":
+                # Use filename or directory name
+                session_name = session_key.rstrip("/").split("/")[-1]
+            else:
+                # Use first 50 chars of URL
+                session_name = session_key[:50]
+
+        print(f"\nSession name: {session_name}")
 
         # STEP 4: Fetch documents
         documents = fetch_source_documents(source_type, session_key)
@@ -210,7 +220,7 @@ def main():
     retriever = store.get_retriever(k=6)
     rag_chain = build_rag_chain(llm, retriever)
 
-    print("\n Chat started! Ask questions (type 'exit' to quit)\n")
+    print("\nChat started! Ask questions (type 'exit' to quit)\n")
 
     # Chatting loop
     while True:
@@ -231,7 +241,9 @@ def main():
 
         answer = rag_chain.invoke(final_query)
 
-        print(f"\nAssistant: {answer}\n")
+        console.print("\n[bold green]Assistant[/bold green]")
+        console.print(Markdown(answer))
+        console.print()  # spacing
 
         memory.add_assistant_message(answer)
 

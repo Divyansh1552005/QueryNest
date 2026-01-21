@@ -175,3 +175,6 @@ pyrightconfig.json
 
 # system config files
 .zed/
+
+# other files
+PROJECT_STRUCTURE.md

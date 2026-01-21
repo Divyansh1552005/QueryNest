@@ -153,4 +153,4 @@ def load_web_pages(urls: Union[str, list[str]]) -> Iterable[Document]:
     for url in urls:
         yield load_web_page(url)
 
-    print(f"\n✅ Successfully fetched all {len(urls)} web page(s)\n")
+    print(f"\nSuccessfully fetched all {len(urls)} web page(s)\n")

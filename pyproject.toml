@@ -37,42 +37,36 @@ dependencies = [
   "langchain-core==0.3.80",
   "langchain-community==0.3.31",
   "langchain-text-splitters==0.3.11",
-
   # Google Gemini integration
   "langchain-google-genai==2.0.10",
   "google-generativeai==0.8.5",
-
   # Environment configuration
   "python-dotenv==1.2.1",
-
   # Vector store (FAISS – local)
   "faiss-cpu==1.8.0.post1",
-
   # Tokenization and validation
   "tiktoken==0.12.0",
   "pydantic==2.12.5",
-
   # PDF loader
   "pypdf==6.4.0",
-
   # Web content loading and cleaning
   "requests==2.32.5",
   "beautifulsoup4==4.12.3",
   "readability-lxml==0.8.1",
   "lxml==5.2.2",
   "lxml-html-clean==0.1.1",
-
   # Progress bars
   "tqdm",
-
   # --- FUTURE / OPTIONAL ---
   # YouTube transcript loader (disabled due to platform restrictions)
   # Uncomment if transcript access becomes reliable again
   # "youtube-transcript-api==0.6.2",
+  "typer>=0.21.1",
+  "rich>=14.2.0",
 ]
 
 [project.scripts]
-querynest = "querynest.cli.main:app"
+querynest = "querynest.cli.main:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

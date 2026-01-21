@@ -1,5 +1,5 @@
 """
-This file : 
+This file :
 - LangChain Community FAISS vector store manage karna
 - Session-based save / load support dena
 - Retriever provide karna (RAG ke liye)
@@ -16,7 +16,6 @@ from querynest.utils.paths import get_session_dir
 
 
 class FaissStore:
-
     def __init__(self):
         self.embeddings = get_embeddings()
 
@@ -50,8 +49,7 @@ class FaissStore:
         except Exception:
             return False
 
-
-# Build new index
+    # Build new index
 
     def build(self, documents: List[Document], session_id: str):
         """
@@ -71,7 +69,6 @@ class FaissStore:
 
     # Save the current faiss session to didsk
     def save(self, session_id: str):
-
         if not self.store:
             raise RuntimeError("FAISS store not initialized")
 
@@ -80,7 +77,6 @@ class FaissStore:
 
     # Retriever is returned by this
     def get_retriever(self, k: int = 4):
-
         if not self.store:
             raise RuntimeError("FAISS store not initialized")
 

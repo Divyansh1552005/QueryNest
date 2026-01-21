@@ -31,6 +31,11 @@ It is designed to be developer-friendly, fully self-hostable, and incrementally 
 * Fetches and cleans main page content
 * Allows semantic querying over web pages
 
+**Limitations:**
+- JavaScript-rendered pages are NOT supported
+- Image-only pages are NOT supported
+- Login / paywall pages are NOT supported
+
 ### PDF Documents
 
 * Accepts a local PDF file path
