@@ -40,8 +40,8 @@ def main(
     if not web and not pdf:
         typer.secho("Error: Please provide --web or --pdf", fg=typer.colors.RED)
         typer.echo("\nExamples:")
-        typer.echo('  querynest chat --web "https://example.com"')
-        typer.echo('  querynest chat --pdf "/path/to/file.pdf"')
+        typer.echo('querynest chat --web "https://example.com"')
+        typer.echo('querynest chat --pdf "/path/to/file.pdf"')
         raise typer.Exit(1)
 
     if web and pdf:
@@ -104,7 +104,7 @@ def main(
         save_session_meta(session_dir, meta)
         typer.secho("New session created", fg=typer.colors.GREEN)
     else:
-        # RESUMED SESSION - Load and display existing name
+        # resumed session case - Load and display existing name
         existing_meta = load_session_meta(session_dir)
 
         if existing_meta:

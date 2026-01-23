@@ -10,6 +10,7 @@ app = typer.Typer()
 
 @app.command()
 def show(
+    # Optional[str] means it can be optional or a string (optional coz ek devega ne user teeno mein te)
     session_id: Optional[str] = typer.Option(
         None,
         "--session-id",
@@ -20,6 +21,7 @@ def show(
         "--web",
         help="Web page URL"
     ),
+    
     pdf: Optional[str] = typer.Option(
         None,
         "--pdf",

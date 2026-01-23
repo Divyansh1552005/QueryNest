@@ -1,6 +1,7 @@
 import json
 import shutil
 
+from querynest.utils.hashing import generate_session_id
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -21,7 +22,6 @@ def list_sessions(
 ):
     """List all QueryNest sessions"""
 
-    # 1. Validate sorting flags -> ie we can only use one of these 3 flag at a time. btw with -all we can use these
     sort_flags = [recent, oldest, name]
     if sum(sort_flags) > 1:
         typer.secho(
@@ -34,7 +34,6 @@ def list_sessions(
         typer.secho("No sessions found", fg=typer.colors.YELLOW)
         return
 
-    
     sessions = []
     for session_dir in SESSIONS_DIR.iterdir():
         meta_path = session_dir / "meta.json"
@@ -48,43 +47,42 @@ def list_sessions(
         typer.secho("No sessions found", fg=typer.colors.YELLOW)
         return
 
-    # Sorting 
     if recent:
-        sessions.sort(
-            key=lambda m: m.get("last_used_at", ""),
-            reverse=True,
-        )
-
+        sessions.sort(key=lambda m: m.get("last_used_at", ""), reverse=True)
     elif oldest:
-        sessions.sort(
-            key=lambda m: m.get("created_at", ""),
-        )
-
+        sessions.sort(key=lambda m: m.get("created_at", ""))
     elif name:
-        sessions.sort(
-            key=lambda m: m.get("name", "").lower(),
-        )
+        sessions.sort(key=lambda m: m.get("name", "").lower())
 
-    # Display
+    table = Table(title="QueryNest Sessions")
+
+    table.add_column("Session ID", style="cyan")
+    table.add_column("Name", style="green")
+    table.add_column("Type", style="yellow")
+
     if all:
-        for meta in sessions:
-            typer.secho("─" * 40, fg=typer.colors.BLUE)
-            for k, v in meta.items():
-                typer.secho(f"{k}: {v}", fg=typer.colors.WHITE)
-    else:
-        table = Table(title="QueryNest Sessions")
-        table.add_column("Session ID", style="cyan")
-        table.add_column("Name", style="green")
-        table.add_column("Type", style="yellow")
+        table.add_column("Source", style="white")
+        table.add_column("Created At", style="magenta")
+        table.add_column("Last Used", style="blue")
 
-        for meta in sessions:
-            table.add_row(
-                meta.get("id", ""),
-                meta.get("name", ""),
-                meta.get("source_type", "").upper(),
-            )
+    for meta in sessions:
+        row = [
+            meta.get("id", ""),
+            meta.get("name", ""),
+            meta.get("source_type", "").upper(),
+        ]
 
-        console.print(table)
+        if all:
+            row.extend([
+                meta.get("source", ""),
+                meta.get("created_at", ""),
+                meta.get("last_used_at", ""),
+            ])
+
+        table.add_row(*row)
+
+    console.print(table)
+
 
 @app.command("delete")
 def delete_session(session_id: str = typer.Argument(..., help="Session ID to delete")):
@@ -104,12 +102,41 @@ def delete_session(session_id: str = typer.Argument(..., help="Session ID to del
     shutil.rmtree(session_path)
     typer.secho("Session deleted", fg=typer.colors.GREEN)
 
-
 @app.command("info")
-def session_info(session_id: str = typer.Argument(..., help="Session ID")):
-    """
-    Show detailed metadata for a session.
-    """
+def session_info(
+    session_id: str = typer.Argument(
+        None,
+        help="Session ID",
+    ),
+    source: str = typer.Option(
+        None,
+        "--source",
+        "-s",
+        help="Source used to create the session (web URL or PDF path)",
+    ),
+):
+    if not session_id and not source:
+        typer.secho(
+            "Either SESSION_ID or --source must be provided",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
+
+    if session_id and source:
+        typer.secho(
+            "Provide only one of SESSION_ID or --source",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
+
+    if source:
+        session_id = generate_session_id(source)
+        if not session_id:
+            typer.secho(
+                "No session found for given source",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(1)
 
     session_dir = SESSIONS_DIR / session_id
     meta_path = session_dir / "meta.json"
@@ -119,7 +146,10 @@ def session_info(session_id: str = typer.Argument(..., help="Session ID")):
         raise typer.Exit(1)
 
     if not meta_path.exists():
-        typer.secho("Metadata not found for this session", fg=typer.colors.RED)
+        typer.secho(
+            "Metadata not found for this session",
+            fg=typer.colors.RED,
+        )
         raise typer.Exit(1)
 
     with open(meta_path, "r", encoding="utf-8") as f:

@@ -4,7 +4,7 @@ Is file ka kaam:
 - JSON file me persist karna
 - Sliding window maintain karna for context awareness
 
-Ye memory RAG ke context ke liye use hogi
+Ye memory RAG ke context ke liye use krunga
 """
 
 import json
