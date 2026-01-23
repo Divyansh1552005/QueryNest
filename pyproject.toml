@@ -1,21 +1,19 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "querynest-cli"
-version = "0.1.0"
+version = "1.0.1"
 description = "FAISS-first RAG CLI for documents and web pages"
 readme = "README.md"
-license = { text = "GPL-3.0-only" }
+license = { file = "LICENSE" }
+keywords = ["rag", "faiss", "llm", "cli", "ai", "langchain"]
 
 authors = [
   { name = "Divyansh Sharma" }
 ]
 
-# Python version policy
-# Development: 3.12
-# Supported: >=3.10,<3.13
 requires-python = ">=3.10,<3.13"
 
 classifiers = [
@@ -32,37 +30,32 @@ classifiers = [
 ]
 
 dependencies = [
-  # LangChain core
-  "langchain==0.3.27",
-  "langchain-core==0.3.80",
-  "langchain-community==0.3.31",
-  "langchain-text-splitters==0.3.11",
-  # Google Gemini integration
-  "langchain-google-genai==2.0.10",
-  "google-generativeai==0.8.5",
-  # Environment configuration
-  "python-dotenv==1.2.1",
-  # Vector store (FAISS – local)
-  "faiss-cpu==1.8.0.post1",
-  # Tokenization and validation
-  "tiktoken==0.12.0",
-  "pydantic==2.12.5",
-  # PDF loader
-  "pypdf==6.4.0",
-  # Web content loading and cleaning
-  "requests==2.32.5",
-  "beautifulsoup4==4.12.3",
-  "readability-lxml==0.8.1",
-  "lxml==5.2.2",
-  "lxml-html-clean==0.1.1",
-  # Progress bars
-  "tqdm",
-  # --- FUTURE / OPTIONAL ---
-  # YouTube transcript loader (disabled due to platform restrictions)
-  # Uncomment if transcript access becomes reliable again
-  # "youtube-transcript-api==0.6.2",
-  "typer>=0.21.1",
-  "rich>=14.2.0",
+  "langchain>=0.3,<0.4",
+  "langchain-core>=0.3,<0.4",
+  "langchain-community>=0.3,<0.4",
+  "langchain-text-splitters>=0.3,<0.4",
+
+  "langchain-google-genai>=2.0,<3.0",
+  "google-generativeai>=0.8,<1.0",
+
+  "python-dotenv>=1.0",
+
+  "faiss-cpu>=1.7.4,<2.0",
+
+  "tiktoken>=0.6",
+  "pydantic>=2.5,<3.0",
+
+  "pypdf>=4.0",
+
+  "requests>=2.31",
+  "beautifulsoup4>=4.12",
+  "readability-lxml>=0.8",
+  "lxml>=5.0",
+  "lxml-html-clean>=0.1",
+
+  "tqdm>=4.66",
+  "typer>=0.12",
+  "rich>=13.7",
 ]
 
 [project.scripts]

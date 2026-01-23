@@ -42,8 +42,8 @@ def load_pdfs(path: str) -> List[Document]:
         print("\nError: Path not found")
         print(f"Path: {path}")
         print("\nPlease check:")
-        print("- The path is correct")
-        print("- You have permission to access the file/directory")
+        print("The path is correct")
+        print("You have permission to access the file/directory")
         print("Exiting...\n")
         sys.exit(1)
 

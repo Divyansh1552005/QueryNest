@@ -84,7 +84,7 @@ def load_web_page(url: str) -> Document:
             print("Exiting...\n")
             sys.exit(1)
 
-        print(f"✅ Successfully fetched: {url}")
+        print(f"Successfully fetched: {url}")
 
         return Document(
             page_content=text,
