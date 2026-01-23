@@ -4,6 +4,38 @@ QueryNest is a terminal-first, Python-based Retrieval Augmented Generation (RAG)
 
 It is designed to be developer-friendly, fully self-hostable, and incrementally extensible, with a strong focus on local execution and minimal external dependencies.
 
+Note - Supports Python 3.10+. Newer Python versions may show upstream warnings.
+
+---
+
+## Installation
+
+QueryNest is distributed as a Python package and can be installed directly from **PyPI**.
+
+### Requirements
+
+- Python **3.10 or higher**
+- `pip` installed and available in PATH
+- Internet access for first-time dependency installation
+
+### Install via pip
+
+    pip install querynest-cli==1.0.0
+
+This installs the `querynest` CLI globally in your environment.
+
+### Verify Installation
+
+    querynest --help
+
+If installed correctly, you should see the available CLI commands.
+
+### PyPI Package
+
+Official PyPI release:  
+https://pypi.org/project/querynest-cli/1.0.0/#description
+
+
 ---
 
 ## Features
