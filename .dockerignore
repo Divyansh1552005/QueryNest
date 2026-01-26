@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# Editor / OS junk
+.vscode/
+.idea/
+.DS_Store
+
+# Tests & local scripts
+tests/
+scripts/
+
+# Docs & misc
+*.md
+*.txt
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Environment files
+.env
+.env.*

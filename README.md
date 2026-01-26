@@ -4,8 +4,6 @@ QueryNest is a terminal-first, Python-based Retrieval Augmented Generation (RAG)
 
 It is designed to be developer-friendly, fully self-hostable, and incrementally extensible, with a strong focus on local execution and minimal external dependencies.
 
-Note - Supports Python 3.10+. Newer Python versions may show upstream warnings.
-
 ---
 
 ## Installation
@@ -34,6 +32,7 @@ If installed correctly, you should see the available CLI commands.
 
 Official PyPI release:  
 https://pypi.org/project/querynest-cli/1.0.0/#description
+
 
 
 ---
@@ -110,8 +109,8 @@ Terminal Response
 
 ### LLM and Embeddings
 
-* Gemini 1.5 Pro (LLM)
-* Gemini Embedding Model (`embedding-001`)
+* For embedding (models/text-embedding-004)
+* For LLM, gemini-2.5-flash
 
 > Planned: Support for OpenAI, Claude, and Hugging Face models via user-provided API keys.
 
@@ -123,7 +122,7 @@ Terminal Response
 ### Content Extraction
 
 * Websites: `requests`, `beautifulsoup4`, `readability-lxml`
-* PDFs: `pypdf`, `pdfplumber`
+* PDFs: `pypdf`
 
 ---
 

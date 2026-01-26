@@ -115,6 +115,10 @@ def session_info(
         help="Source used to create the session (web URL or PDF path)",
     ),
 ):
+    
+    """
+    Show info for a session using either its session ID or the source.
+    """
     if not session_id and not source:
         typer.secho(
             "Either SESSION_ID or --source must be provided",

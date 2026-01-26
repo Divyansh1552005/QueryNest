@@ -7,7 +7,24 @@ Ye file sirf ek baar call hoti hai (app startup pe)
 """
 
 import os
+import sys
 from querynest.config.setup import setup_if_needed
+
+
+def _is_help_or_empty_command() -> bool:
+    argv = sys.argv[1:]
+
+    if not argv:
+        # querynest
+        return True
+
+    if "--help" in argv or "-h" in argv:
+        return True
+
+    return False
+
+
+
 
 
 def bootstrap():
@@ -18,6 +35,9 @@ def bootstrap():
 
     Iske baad - chatmodel, embedding model sb api key use kr skte hai environment se
     """
+    # no need of bootstrap of help/ empty command
+    if _is_help_or_empty_command():
+            return
 
     config = setup_if_needed()
 
