@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "querynest-cli"
-version = "1.0.0"
+version = "1.0.1"
 description = "FAISS-first RAG CLI for documents and web pages"
 readme = "README.md"
 license = { file = "LICENSE" }
