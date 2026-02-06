@@ -40,5 +40,3 @@ WORKDIR /app
 # Copy only installed Python packages and CLI
 COPY --from=builder /usr/local /usr/local
 
-ENTRYPOINT ["querynest"]
-
