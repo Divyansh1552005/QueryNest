@@ -40,3 +40,17 @@ WORKDIR /app
 # Copy only installed Python packages and CLI
 COPY --from=builder /usr/local /usr/local
 
+
+# non root user 
+
+# Create a non-root user
+RUN useradd -m -u 10001 querynest
+
+# Change ownership of app directory (safe even if empty)
+RUN chown -R querynest:querynest /app
+
+# Switch to non-root user
+USER querynest
+
+ENTRYPOINT ["querynest"]
+
