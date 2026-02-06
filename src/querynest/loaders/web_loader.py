@@ -74,7 +74,7 @@ def load_web_page(url: str) -> Document:
         text = _extract_clean_text(response.text)
 
         if not text:
-            print("\n❌ Error: No readable content found")
+            print("\nError: No readable content found")
             print(f"URL: {url}")
             print("\nThe page might be:")
             print("- Empty or only contains images/videos")

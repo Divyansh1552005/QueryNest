@@ -122,7 +122,7 @@ def load_pdfs(path: str) -> List[Document]:
                 print("Exiting...\n")
                 sys.exit(1)
 
-            print(f"✅ Loaded {len(documents)} page(s) from {len(pdf_files)} PDF(s)")
+            print(f"Loaded {len(documents)} page(s) from {len(pdf_files)} PDF(s)")
             return documents
 
         except Exception as e:
