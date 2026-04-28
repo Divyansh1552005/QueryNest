@@ -745,6 +745,15 @@ Introduction website (TypeScript):
 * Download — all distribution options listed clearly (pip, Docker, `.exe`, `.rpm`, `.deb`, AppImage, Tarball)
 * Documentation — full usage guide, CLI reference, configuration options, and examples
 
+### v6 – TUI (Planned)
+
+* Build an optional Terminal UI using Textual (Python)
+* Panels for chat history, input box, session sidebar, and model info
+* All existing CLI logic reusable as-is — Textual acts as a presentation layer only
+* CLI commands continue to work as-is — TUI is an alternative, not a replacement
+* Run via: `querynest tui`
+
+
 ---
 
 ## Distribution
