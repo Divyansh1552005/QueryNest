@@ -3,18 +3,22 @@ from typing import Optional
 import typer
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.live import Live
 
-from querynest.config.gemini import get_llm
+# from querynest.config.gemini import get_llm
+from querynest.config.llm import get_llm  
 from querynest.loaders.pdf_loader import load_pdfs
 from querynest.loaders.web_loader import load_web_page
 from querynest.memory.chat_memory import ChatMemory
 from querynest.processor.text_splitter import split_documents
 from querynest.rag.rag_chain import build_rag_chain
+from querynest.config.config_loader import load_config
 from querynest.sessions.session_meta import (
     SessionMeta,
     load_session_meta,
     save_session_meta,
 )
+from querynest.utils.paths import get_session_dir, get_chat_path
 from querynest.utils.hashing import generate_session_id
 from querynest.utils.paths import get_session_dir
 from querynest.vector_store.faiss_store import FaissStore
@@ -28,6 +32,7 @@ def main(
     ctx: typer.Context,
     web: Optional[str] = typer.Option(None, "--web", help="Web page URL"),
     pdf: Optional[str] = typer.Option(None, "--pdf", help="PDF file or directory path"),
+    force: bool = typer.Option(False, "--force", help="Force re-index even if session exists"),
 ):
     """
     Start a chat session with a web page or PDF.
@@ -55,9 +60,20 @@ def main(
 
     session_id = generate_session_id(source_key)
     session_dir = get_session_dir(session_id)
-
+    
+    typer.secho("Using Embeddings: Google Gemini (text-embedding-004)", fg=typer.colors.MAGENTA)
     store = FaissStore()
     resumed = store.load(session_id)
+    
+    # force flag - suppose if the same web page has been updated etc so user can force it
+    if resumed and force:
+        typer.secho("Force flag detected — rebuilding index...", fg=typer.colors.YELLOW)
+        resumed = False
+        # Chat history bhi clear karo
+        chat_path = get_chat_path(session_id)
+        if chat_path.exists():
+                chat_path.unlink()
+        resumed = False
 
     if not resumed:
         # NEW SESSION - Ask for name
@@ -126,6 +142,8 @@ def main(
     memory = ChatMemory(session_id)
     retriever = store.get_retriever()
     llm = get_llm()
+    config = load_config()
+    typer.secho(f"Using LLM: {config.llm_model}", fg=typer.colors.MAGENTA)
     rag_chain = build_rag_chain(llm, retriever)
 
     typer.secho(
@@ -150,14 +168,26 @@ def main(
 
             final_query = f"{context}\nUser: {question}"
 
+            # Done without streaming (older implementation )
+            # typer.secho("Thinking...", fg=typer.colors.CYAN)
+
+            # answer = rag_chain.invoke(final_query)
+
+            # console.print("\n[bold green]Assistant[/bold green]")
+            # console.print(Markdown(answer))
+            # console.print()  # spacing
+            
             typer.secho("Thinking...", fg=typer.colors.CYAN)
-
-            answer = rag_chain.invoke(final_query)
-
+            
             console.print("\n[bold green]Assistant[/bold green]")
-            console.print(Markdown(answer))
-            console.print()  # spacing
-
+            answer = ""
+            for chunk in rag_chain.stream(final_query):
+                print(chunk, end="", flush=True)
+                answer += chunk
+            console.print("\n")  # newline at end
+            
+            
+            
             memory.add_assistant_message(answer)
     except (KeyboardInterrupt, EOFError):
         typer.echo("\n\nSession saved. Goodbye!")
