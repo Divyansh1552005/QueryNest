@@ -17,6 +17,7 @@ from typing import List
 
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 from langchain_core.documents import Document
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
 
 def load_pdfs(path: str) -> List[Document]:
@@ -60,7 +61,16 @@ def load_pdfs(path: str) -> List[Document]:
         try:
             print(f"\nLoading PDF: {input_path.name}")
             loader = PyPDFLoader(str(input_path))
-            documents = loader.load()  # Full load, not lazy
+            
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[cyan]{task.description}"),
+                BarColumn(),
+                TaskProgressColumn(),
+            ) as progress:
+                task = progress.add_task(f"Loading {input_path.name}...", total=None)  # indeterminate
+                documents = loader.load()
+                progress.update(task, completed=True, total=1)
 
             if not documents:
                 print("\nError: PDF file is empty or unreadable")

@@ -11,6 +11,8 @@ from typing import List
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+
 from querynest.embeddings.embedder import get_embeddings
 from querynest.utils.paths import get_session_dir
 
@@ -51,20 +53,45 @@ class FaissStore:
 
     # Build new index
 
+    
+    
     def build(self, documents: List[Document], session_id: str):
-        """
-        Naya FAISS index banata hai using LangChain Documents
-        aur disk par save karta hai.
-        """
-
         if not documents:
             raise ValueError("No documents provided to build FAISS index")
-
-        self.store = FAISS.from_documents(
-            documents=documents,
-            embedding=self.embeddings,
-        )
-
+        
+        total = len(documents)
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[cyan]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TextColumn(f"[dim]{total} chunks"),
+        ) as progress:
+            task = progress.add_task("Embedding chunks...", total=total)
+            
+            # Batch mein embed karo with progress
+            batch_size = 50
+            all_docs = []
+            
+            for i in range(0, total, batch_size):
+                batch = documents[i:i + batch_size]
+                if i == 0:
+                    # Pehle batch se FAISS store initialize karo
+                    self.store = FAISS.from_documents(
+                        documents=batch,
+                        embedding=self.embeddings,
+                    )
+                else:
+                    # Baaki batches merge karo
+                    batch_store = FAISS.from_documents(
+                        documents=batch,
+                        embedding=self.embeddings,
+                    )
+                    self.store.merge_from(batch_store)
+                
+                progress.advance(task, len(batch))
+        
         self.save(session_id)
 
     # Save the current faiss session to didsk
