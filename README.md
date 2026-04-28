@@ -17,6 +17,10 @@ It is designed to be developer-friendly, fully self-hostable, and incrementally 
 - [Supported Data Sources](#supported-data-sources)
   - [Websites](#websites)
   - [PDF Documents](#pdf-documents)
+- [Key Features In-Depth](#key-features-in-depth)
+  - [Multi-Model LLM Support](#multi-model-llm-support)
+  - [Rich Progress Bars](#rich-progress-bars)
+  - [Streaming Responses](#streaming-responses)
 - [High-Level Architecture](#high-level-architecture)
 - [Technical Stack](#technical-stack)
 - [Memory Design](#memory-design)
@@ -55,7 +59,7 @@ QueryNest is distributed as a Python package and can be installed directly from 
 #### Install using pip
 
 ```bash
-pip install querynest-cli==1.0.1
+pip install querynest-cli==2.0.0
 ```
 
 This installs the `querynest` CLI in your environment.
@@ -71,7 +75,7 @@ If installed correctly, you should see the available CLI commands.
 #### PyPI Package
 
 Official PyPI release:
-[https://pypi.org/project/querynest-cli/1.0.1/](https://pypi.org/project/querynest-cli/1.0.1/)
+[https://pypi.org/project/querynest-cli/2.0.0/](https://pypi.org/project/querynest-cli/2.0.0/)
 
 ---
 
@@ -124,7 +128,7 @@ The CLI supports:
 * Automatic session creation and resume
 * Session inspection, search, rename, and deletion
 * Viewing chat history
-* Configuration management (API key)
+* Configuration management (API keys and LLM model selection)
 
 ---
 
@@ -181,26 +185,51 @@ Only **one source** is allowed per session.
 ### Usage
 
 ```bash
+# Start chat with a web page
 querynest chat --web "https://example.com"
+
+# Start chat with a single PDF
 querynest chat --pdf "/path/to/file.pdf"
+
+# Start chat with multiple PDFs in a folder
 querynest chat --pdf "/path/to/folder/"
+
+# Force rebuild the vector index (useful if the source has been updated)
+querynest chat --web "https://example.com" --force
+querynest chat --pdf "/path/to/file.pdf" --force
 ```
 
 ### Behavior
 
 * A deterministic session ID is generated from the source
 * If a session already exists for the source, it is resumed automatically
-* If not, a new session is created
+* If not, a new session is created with rich progress feedback
 * On first creation, the user is prompted for a session name
-* Documents are loaded, split, embedded, and indexed using FAISS
-* A conversational chat loop is started
+* Documents are loaded (with progress bars), split into chunks, embedded, and indexed using FAISS
+* A conversational chat loop is started with **real-time streaming responses**
+* Model used is shown on startup and determined by your current config (defaults to Gemini)
+
+### The `--force` Flag
+
+```bash
+querynest chat --web "https://example.com" --force
+```
+
+Forces a complete rebuild of the vector index even if a session already exists for the source. Use this when:
+- The web page content has been updated
+- The PDF has been modified
+- You want a fresh index without resuming the old session
+
+This clears the existing chat history and vector index for that source and starts fresh.
 
 ### Key Characteristics
 
-* Interactive REPL-style chat
-* Markdown-rendered assistant responses
-* Sliding window memory
-* Automatic persistence of chat and vectors
+* **Interactive REPL-style chat** with streaming token-by-token responses
+* **Plain text responses** with structured formatting (headings, lists) — no markdown symbols
+* **Sliding window memory** for efficient conversation context
+* **Automatic persistence** of chat and vectors
+* **Rich progress feedback** during document processing
+* **Multi-model support** — Use any LLM through LiteLLM
 * Graceful handling of Ctrl+C and EOF
 
 ### Exit
@@ -218,19 +247,66 @@ quit
 
 ### Purpose
 
-Manage QueryNest configuration, primarily the Gemini API key.
+Manage QueryNest configuration — API keys and LLM model selection.
 
 ### Commands
 
-#### Set API Key
+#### Set Gemini API Key
 
 ```bash
-querynest config set-api-key
+querynest config set-gemini-key
 ```
 
-* Prompts securely for a new API key
+* Prompts securely for a new Gemini API key
+* Used exclusively for embeddings (`text-embedding-004`)
 * Updates the local configuration file
 * Takes effect immediately
+
+#### Set LLM Model
+
+```bash
+querynest config set-llm
+```
+
+* Shows a curated menu of supported LLM providers and models
+* Also supports entering a custom model string (e.g. `groq/llama-3.1-8b-instant`)
+* Prompts for the provider API key (skipped if Gemini is selected as LLM)
+* Available options:
+
+```
+1. Gemini 2.5 Flash (default)
+2. OpenAI - GPT-4o
+3. OpenAI - GPT-4o Mini
+4. Anthropic - Claude Sonnet
+5. Groq - Llama 3.3 70B
+6. Mistral - Large
+7. Enter custom model string
+```
+
+#### Set LLM API Key (without changing model)
+
+```bash
+querynest config set-llm-key
+```
+
+* Updates only the API key for the currently configured LLM provider
+* Useful when rotating API keys without switching models
+* If current LLM is Gemini, redirects to `set-gemini-key`
+
+#### Show Current Models
+
+```bash
+querynest config show-models
+```
+
+* Displays the currently configured embedding model and LLM
+* Example output:
+
+```
+Current Configuration:
+  Embeddings : Google Gemini (text-embedding-004)
+  LLM        : groq/llama-3.3-70b-versatile
+```
 
 ---
 
@@ -379,9 +455,6 @@ Search is:
 
 ---
 
-
-
-
 ## Design Constraints and Guarantees
 
 * One session corresponds to exactly one source
@@ -389,18 +462,21 @@ Search is:
 * Multiple PDFs are supported only via a single folder
 * JavaScript-rendered web pages are not supported
 * Image-only documents are not supported
+* Embedding model is fixed (Google Gemini) — changing it would invalidate existing indexes
 
 ---
 
-
-
 ## Features
 
-* Terminal-based conversational interface
+* **Terminal-based conversational interface** with streaming responses for real-time feedback
+* **Multi-model LLM support** — Seamlessly switch between Gemini, OpenAI, Claude, Groq, Mistral and 100+ providers via LiteLLM
+* **Rich progress bars** for PDF loading, chunking, and embedding operations
+* **Streaming responses** — Responses stream token-by-token in real-time
+* **Force re-indexing** — Rebuild vector index on demand with `--force`
 * Query external knowledge sources using natural language
 * Support for multiple data sources:
-* Website URLs (cleaned page content)
-* PDF documents (local files)
+  * Website URLs (cleaned page content)
+  * PDF documents (local files or folders)
 * Retrieval Augmented Generation (RAG) pipeline
 * Conversational context awareness (sliding window memory)
 * Deterministic session creation and automatic session resume
@@ -425,9 +501,63 @@ Search is:
 
 ### PDF Documents
 
-* Accepts a local PDF file path
-* Extracts document text
+* Accepts a local PDF file path or folder of PDFs
+* Extracts document text with **rich progress feedback**
 * Enables question answering over document content
+
+---
+
+## Key Features In-Depth
+
+### Multi-Model LLM Support
+
+QueryNest supports **100+ LLM models** through LiteLLM integration. Embeddings always use Google Gemini (`text-embedding-004`) for consistency across sessions. The LLM is fully configurable:
+
+```bash
+# Default: Gemini
+querynest chat --pdf "document.pdf"
+
+# Switch to Groq (fast + free tier)
+querynest config set-llm   # select option 5
+
+# Switch to OpenAI
+querynest config set-llm   # select option 2
+
+# Check what's currently configured
+querynest config show-models
+```
+
+Configuration is stored in `~/.querynest/config.json` and persists across sessions.
+
+### Rich Progress Bars
+
+Visual feedback during document processing:
+
+- **PDF Loading**: Shows file processing status with filename and progress
+- **Embedding**: Live progress bar for vector embedding operations (batched, 50 chunks at a time)
+
+Example output:
+```
+Using Embeddings: Google Gemini (text-embedding-004)
+Using LLM:        groq/llama-3.3-70b-versatile
+Loading documents...
+⠸ Embedding chunks... ━━━━━━━━━━━━━━━  45% 45/100 chunks
+```
+
+### Streaming Responses
+
+LLM responses stream token-by-token in real-time with clean formatted output:
+
+```
+You: What is machine learning?
+
+Thinking...
+
+Assistant
+Machine learning is a subset of artificial intelligence that enables
+systems to learn and improve from experience without being explicitly
+programmed...
+```
 
 ---
 
@@ -444,15 +574,15 @@ Text Cleaning & Normalization
      ↓
 Text Chunking
      ↓
-Embeddings (Gemini)
+Embeddings (Google Gemini — fixed)
      ↓
-Vector Store (FAISS / Chroma)
+Vector Store (FAISS)
      ↓
 Similarity Search
      ↓
-LLM (Gemini)
+LLM (Configurable via LiteLLM)
      ↓
-Terminal Response
+Terminal Response (Streamed)
 ```
 
 ---
@@ -465,20 +595,24 @@ Terminal Response
 
 ### LLM and Embeddings
 
-* For embedding (models/text-embedding-004)
-* For LLM, gemini-2.5-flash
-
-> Planned: Support for OpenAI, Claude, and Hugging Face models via user-provided API keys.
+* **LLM (via LiteLLM):** Google Gemini (default), OpenAI, Anthropic, Groq, Mistral, and 100+ more
+* **Embeddings:** Google Gemini `text-embedding-004` (fixed — ensures index consistency)
 
 ### Vector Storage
 
 * FAISS (CPU-based, default)
-* Chroma (planned for persistent storage)
+* Chroma (planned)
 
 ### Content Extraction
 
 * Websites: `requests`, `beautifulsoup4`, `readability-lxml`
 * PDFs: `pypdf`
+
+### UI & Progress Feedback
+
+* **Rich**: Terminal formatting, live progress bars
+* **LiteLLM**: Multi-model LLM abstraction layer
+* **tqdm**: Progress bars for directory PDF loading
 
 ---
 
@@ -490,20 +624,20 @@ QueryNest separates memory into two independent systems:
 
 * Stores embeddings of source content
 * Used only for semantic retrieval
-* Implemented using FAISS or Chroma
+* Implemented using FAISS
 
 ### 2. Conversational Memory (Chat History)
 
 * Stores user–assistant messages
 * Maintains conversational continuity
-* Sliding window of recent messages (typically last 4–5)
+* Sliding window of recent messages (last 4 exchanges)
 * Stored as local JSON files
 
 ---
 
 ## Local Storage Structure
 
-All persistent data is stored locally on the user’s machine.
+All persistent data is stored locally on the user's machine.
 
 ### Base Directory
 
@@ -518,22 +652,31 @@ All persistent data is stored locally on the user’s machine.
 ├── config.json
 └── sessions/
     └── <session_id>/
+        ├── meta.json
         ├── chat.json
         └── vectors.faiss
 ```
 
 ### Configuration (`config.json`)
 
-* Stores user-specific configuration
-* API keys are never bundled in binaries
+```json
+{
+  "gemini_api_key": "...",
+  "llm_model": "groq/llama-3.3-70b-versatile",
+  "llm_api_key": "..."
+}
+```
+
+API keys are never bundled in distributed artifacts.
 
 ---
 
 ## Session Management
 
-* Sessions are deterministically generated using a hash of the input source
+* Sessions are deterministically generated using a SHA-256 hash of the input source
 * Same source results in the same session and memory
 * Enables automatic session resume without manual configuration
+* Use `--force` to bypass resume and rebuild from scratch
 
 ---
 
@@ -548,6 +691,7 @@ Each LLM request includes:
 The LLM is explicitly instructed to:
 
 * Answer only from the provided context
+* Use plain text formatting (no markdown symbols)
 * Respond with "I don't know" if the answer cannot be inferred
 
 ---
@@ -565,7 +709,6 @@ The LLM is explicitly instructed to:
 ### v2 – Full CLI Tool
 
 * Professional command-based CLI interface
-* `init` command for API key setup
 * Local persistence (sessions, chat history, vectors)
 * Improved prompt handling and error management
 
@@ -574,7 +717,33 @@ The LLM is explicitly instructed to:
 * Dockerfile and Docker Compose support
 * Volume-mounted persistent storage
 * Same CLI experience inside containers
-* Simplified self-hosted deployment
+
+### v4 – Multi-Model Support (Current)
+
+* LiteLLM integration for 100+ LLM providers
+* Curated model selection menu with custom model support
+* Per-provider API key management
+* Rich progress bars for embedding pipeline
+* Streaming responses
+* Force re-indexing with `--force`
+
+### v5 – Distribution & Introduction Website (Planned)
+
+Distribution formats:
+
+* Docker Image — primary self-host method
+* pip package
+* Windows executable — `.exe` via PyInstaller
+* Linux packages — `.rpm` and `.deb`
+* AppImage — packaging format research and build pipeline
+* Tarball
+
+Introduction website (TypeScript):
+
+* Home — project intro, tagline, quick feature highlights
+* About — what QueryNest is, how it works, the tech behind it
+* Download — all distribution options listed clearly (pip, Docker, `.exe`, `.rpm`, `.deb`, AppImage, Tarball)
+* Documentation — full usage guide, CLI reference, configuration options, and examples
 
 ---
 
@@ -582,10 +751,10 @@ The LLM is explicitly instructed to:
 
 QueryNest is distributed through multiple formats:
 
-* Docker image (primary self-hosting method)
-* pip package
-* Windows executable (`.exe` via PyInstaller)
-* Linux packages (`.rpm`, `.deb`)
+* Docker image (`divyansh1552005/querynest:latest`)
+* pip package (`querynest-cli` on PyPI)
+* Windows executable (`.exe` via PyInstaller) — planned
+* Linux packages (`.rpm`, `.deb`) — planned
 
 Secrets and API keys are never bundled in distributed artifacts.
 
