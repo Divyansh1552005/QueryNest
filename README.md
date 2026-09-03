@@ -126,20 +126,20 @@ Standalone packages built with PyInstaller + fpm — no Python install required.
 See [`packaging/README.md`](packaging/README.md) for how these are built and verified.
 
 * **Fedora / RHEL / openSUSE (.rpm):**
-  [querynest-cli-2.0.0-1.x86_64.rpm](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli-2.0.0-1.x86_64.rpm)
+  [querynest-cli-2.0.2-1.x86_64.rpm](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.2/querynest-cli-2.0.2-1.x86_64.rpm)
   ```bash
-  sudo rpm -i querynest-cli-2.0.0-1.x86_64.rpm
+  sudo rpm -i querynest-cli-2.0.2-1.x86_64.rpm
   ```
 * **Debian / Ubuntu (.deb):**
-  [querynest-cli_2.0.0_amd64.deb](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli_2.0.0_amd64.deb)
+  [querynest-cli_2.0.2_amd64.deb](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.2/querynest-cli_2.0.2_amd64.deb)
   ```bash
-  sudo dpkg -i querynest-cli_2.0.0_amd64.deb
+  sudo dpkg -i querynest-cli_2.0.2_amd64.deb
   ```
 * **Any x86_64 Linux distro (.tar.xz):**
-  [querynest-cli-2.0.0.tar.xz](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli-2.0.0.tar.xz)
+  [querynest-cli-2.0.2.tar.xz](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.2/querynest-cli-2.0.2.tar.xz)
   ```bash
   # archive layout is usr/bin/querynest, so extract to / to land it on PATH
-  sudo tar -xJf querynest-cli-2.0.0.tar.xz -C /
+  sudo tar -xJf querynest-cli-2.0.2.tar.xz -C /
   ```
   (Prefer not to touch `/usr` as root? Extract anywhere and run the binary at `<dir>/usr/bin/querynest` directly, or symlink it onto your own `PATH`.)
 
