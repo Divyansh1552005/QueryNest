@@ -35,6 +35,9 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+# querynest.spec is hand-written (not template-generated) and is the actual
+# source of truth packaging/build.sh depends on — keep it tracked.
+!querynest.spec
 
 # Installer logs
 pip-log.txt
@@ -179,4 +182,8 @@ pyrightconfig.json
 # other files
 PROJECT_STRUCTURE.md
 PRD.md
+
+# packaging (fpm/PyInstaller build output)
+dist-packages/
+packaging/pkgroot/
 

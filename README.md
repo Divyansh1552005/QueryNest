@@ -59,7 +59,7 @@ QueryNest is distributed as a Python package and can be installed directly from 
 #### Install using pip
 
 ```bash
-pip install querynest-cli==2.0.0
+pip install querynest-cli==2.0.1
 ```
 
 This installs the `querynest` CLI in your environment.
@@ -75,7 +75,7 @@ If installed correctly, you should see the available CLI commands.
 #### PyPI Package
 
 Official PyPI release:
-[https://pypi.org/project/querynest-cli/2.0.0/](https://pypi.org/project/querynest-cli/2.0.0/)
+[https://pypi.org/project/querynest-cli/2.0.1/](https://pypi.org/project/querynest-cli/2.0.1/)
 
 ---
 
@@ -117,6 +117,33 @@ docker run -it --rm \
 
 Docker Scout may report OS-level CVEs inherited from the base image.
 QueryNest does **not** expose network services and is safe for **CLI usage**.
+
+---
+
+### Option 3: Download a native Linux package (.rpm / .deb / .tar.xz)
+
+Standalone packages built with PyInstaller + fpm — no Python install required.
+See [`packaging/README.md`](packaging/README.md) for how these are built and verified.
+
+* **Fedora / RHEL / openSUSE (.rpm):**
+  [querynest-cli-2.0.0-1.x86_64.rpm](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli-2.0.0-1.x86_64.rpm)
+  ```bash
+  sudo rpm -i querynest-cli-2.0.0-1.x86_64.rpm
+  ```
+* **Debian / Ubuntu (.deb):**
+  [querynest-cli_2.0.0_amd64.deb](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli_2.0.0_amd64.deb)
+  ```bash
+  sudo dpkg -i querynest-cli_2.0.0_amd64.deb
+  ```
+* **Any x86_64 Linux distro (.tar.xz):**
+  [querynest-cli-2.0.0.tar.xz](https://github.com/Divyansh1552005/QueryNest/releases/download/v2.0.0/querynest-cli-2.0.0.tar.xz)
+  ```bash
+  # archive layout is usr/bin/querynest, so extract to / to land it on PATH
+  sudo tar -xJf querynest-cli-2.0.0.tar.xz -C /
+  ```
+  (Prefer not to touch `/usr` as root? Extract anywhere and run the binary at `<dir>/usr/bin/querynest` directly, or symlink it onto your own `PATH`.)
+
+All release assets: [github.com/Divyansh1552005/QueryNest/releases](https://github.com/Divyansh1552005/QueryNest/releases)
 
 ---
 
@@ -762,8 +789,8 @@ QueryNest is distributed through multiple formats:
 
 * Docker image (`divyansh1552005/querynest:latest`)
 * pip package (`querynest-cli` on PyPI)
+* Linux packages — `.rpm`, `.deb`, `.tar.xz` (PyInstaller + fpm; see [`packaging/README.md`](packaging/README.md) for the build pipeline)
 * Windows executable (`.exe` via PyInstaller) — planned
-* Linux packages (`.rpm`, `.deb`) — planned
 
 Secrets and API keys are never bundled in distributed artifacts.
 
