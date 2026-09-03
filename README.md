@@ -59,7 +59,7 @@ QueryNest is distributed as a Python package and can be installed directly from 
 #### Install using pip
 
 ```bash
-pip install querynest-cli==2.0.1
+pip install querynest-cli==2.0.2
 ```
 
 This installs the `querynest` CLI in your environment.
@@ -75,7 +75,7 @@ If installed correctly, you should see the available CLI commands.
 #### PyPI Package
 
 Official PyPI release:
-[https://pypi.org/project/querynest-cli/2.0.1/](https://pypi.org/project/querynest-cli/2.0.1/)
+[https://pypi.org/project/querynest-cli/2.0.2/](https://pypi.org/project/querynest-cli/2.0.2/)
 
 ---
 
